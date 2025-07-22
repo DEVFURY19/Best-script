@@ -1,48 +1,59 @@
--- Create ScreenGui
-local screenGui = Instance.new("ScreenGui")
-screenGui.Name = "GrowAGardenLoadingGUI"
-screenGui.IgnoreGuiInset = true
-screenGui.ResetOnSpawn = false
-screenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+-- GardenLoadingScreen.lua
 
--- Create full-screen garden-style Frame
-local frame = Instance.new("Frame")
-frame.Size = UDim2.new(1, 0, 1, 0)
-frame.Position = UDim2.new(0, 0, 0, 0)
-frame.BackgroundColor3 = Color3.fromRGB(34, 139, 34) -- forest green background
-frame.BorderSizePixel = 0
-frame.Parent = screenGui
+local GardenLoadingScreen = {}
 
--- Create Garden Game TextLabel
-local textLabel = Instance.new("TextLabel")
-textLabel.Text = "🌻 Welcome to Grow a Garden! 🌿\nLoading your tools and seeds..."
-textLabel.Size = UDim2.new(1, 0, 1, 0)
-textLabel.Position = UDim2.new(0, 0, 0, 0)
-textLabel.BackgroundTransparency = 1
-textLabel.TextColor3 = Color3.fromRGB(255, 255, 255) -- white text
-textLabel.TextScaled = true
-textLabel.Font = Enum.Font.GothamBold
-textLabel.Parent = frame
+-- Variables for progress
+local progress = 0
+local isLoading = true
 
--- Add a soft glow using UIStroke
-local stroke = Instance.new("UIStroke")
-stroke.Thickness = 2
-stroke.Color = Color3.fromRGB(144, 238, 144) -- light green glow
-stroke.Transparency = 1
-stroke.Parent = textLabel
+-- UI references
+local loadingBar
+local loadingText
+local tipsText
 
--- Fade in effect
-frame.BackgroundTransparency = 1
-textLabel.TextTransparency = 1
+-- Garden-themed tips
+local gardenTips = {
+    "Planting seeds...",
+    "Watering the soil...",
+    "Sunlight is helping your plants grow...",
+    "Bees are pollinating flowers...",
+    "Composting to enrich the soil..."
+}
 
-for i = 1, 10 do
-    local t = i * 0.1
-    frame.BackgroundTransparency = 1 - t
-    textLabel.TextTransparency = 1 - t
-    stroke.Transparency = 1 - t
-    wait(0.05)
+-- Initialization function (called once)
+function GardenLoadingScreen:Start()
+    -- Find UI elements
+    loadingBar = self.transform:Find("LoadingBar"):GetComponent("UnityEngine.UI.Slider")
+    loadingText = self.transform:Find("LoadingText"):GetComponent("UnityEngine.UI.Text")
+    tipsText = self.transform:Find("TipText"):GetComponent("UnityEngine.UI.Text")
+
+    -- Start coroutine for simulating loading
+    self:StartCoroutine(self:SimulateLoading())
 end
 
--- Optional: wait and remove the GUI
-wait(2)
-screenGui:Destroy()
+-- Coroutine to simulate loading progress
+function GardenLoadingScreen:SimulateLoading()
+    while progress < 1 do
+        progress = progress + UnityEngine.Time.deltaTime * 0.25  -- adjust speed as needed
+        loadingBar.value = progress
+        loadingText.text = string.format("Loading: %d%%", math.floor(progress * 100))
+
+        -- Change tip every 20% progress
+        local tipIndex = math.min(math.floor(progress * 5) + 1, #gardenTips)
+        tipsText.text = gardenTips[tipIndex]
+
+        coroutine.yield(nil)
+    end
+
+    -- When done loading
+    isLoading = false
+    self:OnLoadingComplete()
+end
+
+-- Callback when loading is finished
+function GardenLoadingScreen:OnLoadingComplete()
+    loadingText.text = "Let's Grow!"
+    tipsText.text = "Tap to begin your garden journey 🌼"
+end
+
+return GardenLoadingScreen
