@@ -44,5 +44,5 @@ for i = 1, 10 do
 end
 
 -- Optional: wait and remove the GUI
-wait(2000)
+wait(2)
 screenGui:Destroy()
